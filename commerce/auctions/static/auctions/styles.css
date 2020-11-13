@@ -1,3 +1,26 @@
 body {
     padding: 10px;
 }
+
+#listing {
+    border: 0.5px solid silver;
+    height: 200px;
+    margin: 10px;
+    display: flex;
+}
+
+#listing_img {
+    max-height:100%;
+    max-width: 100%;
+}
+
+#description {
+    text-align: left;
+    margin-left: 40px;
+}
+
+#image {
+    width: 200px;
+    text-align: center;
+    margin-left: 10px;
+}

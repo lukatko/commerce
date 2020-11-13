@@ -1,0 +1,17 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h1>Create a listing</h1>
+        <form method = "post">
+            <h4>Item name: </h4>
+            <input class="form-control" type="text" placeholder="Broom" name = "name">
+            <h4>Insert a link with an image url: </h4>
+            <input class="form-control" type="text" placeholder="url", name = "image">
+            <h4>Starting bidding price, must be up to 2 decimals: </h4>
+            <input class="form-control" type="number" placeholder="50" pattern = "^\d*(\.\d{0,2})?$" name = "price">
+            <h4>Write a comment: </h4>
+            <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name = "comment"></textarea>
+            {% csrf_token %}
+            <input type="submit" value = "Save">
+        </form>
+{% endblock %}

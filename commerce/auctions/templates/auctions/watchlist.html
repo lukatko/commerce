@@ -1,8 +1,8 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Active Listings</h2>
-    {% for listing in Listings %}
+    <h2>My watchlist</h2>
+    {% for listing in watchlist %}
         <a href="{% url "listing" listing.id %}" id = "link_listings">
             <div id = "listing">
                 <div id = "image">

@@ -4,8 +4,9 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 
-from .models import User, Comment, Listing, Bid
+from .models import User, Comment, Listing, Bid, Watchlist
 
 
 def index(request):
@@ -79,8 +80,40 @@ def create(request):
         return render(request, "auctions/create.html")
 
 def listing(request, listing):
-    pass
-    #TODO
+    if (hasattr(request.user, "watchlist")):
+        request.user.watchlist
+    else:
+        watchlist = Watchlist(user = request.user)
+        watchlist.save()
+    watchlist = request.user.watchlist
+    return render(request, "auctions/listing.html", {
+        "listing": Listing.objects.get(pk = int(listing)),
+        "watchlist": watchlist.item.all()
+    })
+
+@login_required
+def add_to_watchlist(request, listing):
+    users_watchlist = request.user.watchlist
+    users_watchlist.item.add(Listing.objects.get(pk = int(listing)))
+    return HttpResponseRedirect(reverse("listing", args = (listing, )))
+
+@login_required
+def remove_from_watchlist(request, listing):
+    users_watchlist = request.user.watchlist
+    users_watchlist.item.remove(Listing.objects.get(pk = int(listing)))
+    return HttpResponseRedirect(reverse("listing", args = (listing, )))
+
+@login_required
+def watchlist(request):
+    try:
+        request.user.watchlist
+    except:
+        watchlist = Watchlist(user = request.user)
+        watchlist.save()
+    watchlist = request.user.watchlist
+    return render(request, "auctions/watchlist.html", {
+        "watchlist": watchlist.item.all()
+    })
 
 
 

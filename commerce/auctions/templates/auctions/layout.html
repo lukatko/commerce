@@ -25,6 +25,11 @@
                     <a class = "nav-link" href="{% url 'create' %}">Create a listing</a>
                 {% endif %}
             </li>
+            <li class = "nav-item">
+                {% if user.is_authenticated %}
+                    <a class = "nav-link" href="{% url 'watchlist' %}">My watchlist</a>
+                {% endif %}
+            </li>
             {% if user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'logout' %}">Log Out</a>

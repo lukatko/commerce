@@ -24,3 +24,11 @@ body {
     text-align: center;
     margin-left: 10px;
 }
+
+#link_listings {
+    color: black;
+}
+
+#link_listings:hover {
+    text-decoration: none;
+}

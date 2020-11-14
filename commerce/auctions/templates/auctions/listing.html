@@ -1,6 +1,14 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+    {% if is_closed %}
+        <div class="alert alert-warning" role="alert">
+            The auction had been closed!
+        </div>
+    {% endif %}
+    {% if is_closed and is_winner %}
+        <h3 id = "congrats">Congratulations, you've won the auction!</h3>
+    {% endif %}
     <h1>{{ listing.post_name }}</h1>
     <div id = "listing">
         <div id = "image">
@@ -13,11 +21,25 @@
             <p>Created by: {{ listing.author }}</p>
         </div>
     </div>
-    {% if user.is_authenticated %}
+    {% if user.is_authenticated and not is_closed %}
         {% if listing not in watchlist %}
             <a href="{% url "add_watchlist" listing.id %}">Add to watchlist</a>
         {% else %}
             <a href="{% url "remove_watchlist" listing.id %}">Remove from watchlist</a>
         {% endif %}
+        {% if is_author %}
+            <a href="{% url "close" listing.id %}">Close the auction</a>
+        {% endif %}
+        {% if flag %}
+            <div class="alert alert-danger" role="alert">
+                Your bid was smaller than the largest one!
+            </div>
+        {% endif %}
+        <p>Number of bids: {{ bids }}</p>
+        <form method = "POST">
+            <input class="form-control" type="number" placeholder="Bid" pattern = "^\d*(\.\d{0,2})?$" name = "price">
+            {% csrf_token %}
+            <input type="submit" value = "Place bid">
+        </form>
     {% endif %}
 {% endblock %}

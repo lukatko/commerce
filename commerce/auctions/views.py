@@ -11,7 +11,14 @@ from .models import User, Comment, Listing, Bid, Watchlist
 
 def index(request):
     return render(request, "auctions/index.html", {
-        "Listings": Listing.objects.all()
+        "Listings": Listing.objects.exclude(closed = 1)[::-1],
+        "active": 1
+    })
+
+def closed_listings(request):
+    return render(request, "auctions/index.html", {
+        "Listings": Listing.objects.exclude(closed = 0)[::-1],
+        "closed": 0
     })
 
 
@@ -74,22 +81,70 @@ def create(request):
         post_name = request.POST["name"]
         comment = Comment(comment = request.POST["comment"], image = request.POST["image"])
         comment.save()
-        Listing(author = author, price = price, comment = comment, post_name=post_name).save()
+        Listing(author = author, price = price, comment = comment, post_name=post_name, closed = 0).save()
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/create.html")
 
 def listing(request, listing):
-    if (hasattr(request.user, "watchlist")):
-        request.user.watchlist
-    else:
-        watchlist = Watchlist(user = request.user)
-        watchlist.save()
-    watchlist = request.user.watchlist
-    return render(request, "auctions/listing.html", {
-        "listing": Listing.objects.get(pk = int(listing)),
-        "watchlist": watchlist.item.all()
-    })
+    listing = Listing.objects.get(pk = int(listing))
+    try:
+        if (hasattr(request.user, "watchlist")):
+            request.user.watchlist
+        else:
+            watchlist = Watchlist(user = request.user)
+            watchlist.save()
+        watchlist = request.user.watchlist
+        if (Bid.objects.filter(item = listing).count() > 0):
+            is_winner = Bid.objects.get(amount = listing.price, item = listing).bidder == request.user
+        else:
+            is_winner = 0
+        if request.method == "POST":
+            price = float(request.POST["price"])
+            if (price <= float(listing.price)):
+                return render(request, "auctions/listing.html", {
+                    "watchlist": watchlist.item.all(),
+                    "listing": listing,
+                    "flag": 1,
+                    "is_author": request.user == listing.author,
+                    "is_closed": listing.closed,
+                    "is_winner": is_winner,
+                    "bids": Bid.objects.filter(item = listing).count()
+                })
+            else:
+                listing.price = price
+                listing.save()
+                Bid(bidder = request.user, item = listing, amount = price).save()
+                return render(request, "auctions/listing.html", {
+                    "watchlist": watchlist.item.all(),
+                    "listing": listing,
+                    "flag": 0,
+                    "is_author": request.user == listing.author,
+                    "is_closed": listing.closed,
+                    "is_winner": is_winner,
+                    "bids": Bid.objects.filter(item = listing).count()
+                })
+        else:
+            return render(request, "auctions/listing.html", {
+                "watchlist": watchlist.item.all(),
+                "listing": listing,
+                "flag": 0,
+                "is_author": request.user == listing.author,
+                "is_closed": listing.closed,
+                "is_winner": is_winner,
+                "bids": Bid.objects.filter(item = listing).count()
+            })
+    except:
+        return render(request, "auctions/listing.html", {
+            "listing": listing,
+            "is_closed": listing.closed
+        })
+
+def closed(request, listing):
+    listing = Listing.objects.get(pk = int(listing))
+    listing.closed = 1
+    listing.save()
+    return HttpResponseRedirect(reverse("listing", args = (listing.id, )))
 
 @login_required
 def add_to_watchlist(request, listing):
@@ -111,6 +166,9 @@ def watchlist(request):
         watchlist = Watchlist(user = request.user)
         watchlist.save()
     watchlist = request.user.watchlist
+    for listing in watchlist.item.all():
+        if (listing.closed):
+            watchlist.item.remove(listing)
     return render(request, "auctions/watchlist.html", {
         "watchlist": watchlist.item.all()
     })

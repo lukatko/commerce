@@ -1,7 +1,11 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Active Listings</h2>
+    {% if active %}
+        <h2>Active Listings</h2>
+    {% else %}
+        <h2>Closed Listings</h2>
+    {% endif %}
     {% for listing in Listings %}
         <a href="{% url "listing" listing.id %}" id = "link_listings">
             <div id = "listing">

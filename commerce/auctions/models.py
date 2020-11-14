@@ -13,6 +13,7 @@ class Listing(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_listings")
     price = models.FloatField()
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
+    closed = models.BooleanField(default = 0)
     
     def __str__(self):
         return f"{self.post_name}"
@@ -24,3 +25,4 @@ class Watchlist(models.Model):
 class Bid(models.Model):
     bidder = models.ForeignKey(User, on_delete = models.CASCADE, related_name="user_bids")
     item = models.ForeignKey(Listing, on_delete = models.CASCADE, related_name="listing_bids")
+    amount = models.FloatField()

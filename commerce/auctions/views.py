@@ -1,12 +1,12 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 
-from .models import User, Comment, Listing, Bid, Watchlist
+from .models import User, Comment, Listing, Bid, Watchlist, Comment_under_post, Category
 
 
 def index(request):
@@ -81,14 +81,18 @@ def create(request):
         post_name = request.POST["name"]
         comment = Comment(comment = request.POST["comment"], image = request.POST["image"])
         comment.save()
-        Listing(author = author, price = price, comment = comment, post_name=post_name, closed = 0).save()
+        category = Category(pk = int(request.POST["Category"]))
+        Listing(author = author, price = price, comment = comment, post_name=post_name, closed = 0, category = category).save()
         return HttpResponseRedirect(reverse("index"))
     else:
-        return render(request, "auctions/create.html")
+        return render(request, "auctions/create.html", {
+            "Categories": Category.objects.all()
+        })
 
 def listing(request, listing):
     listing = Listing.objects.get(pk = int(listing))
-    try:
+    comments = Comment_under_post.objects.filter(item = listing).all()
+    if (request.user.is_authenticated):
         if (hasattr(request.user, "watchlist")):
             request.user.watchlist
         else:
@@ -109,7 +113,8 @@ def listing(request, listing):
                     "is_author": request.user == listing.author,
                     "is_closed": listing.closed,
                     "is_winner": is_winner,
-                    "bids": Bid.objects.filter(item = listing).count()
+                    "bids": Bid.objects.filter(item = listing).count(),
+                    "comment_under": comments[::-1]
                 })
             else:
                 listing.price = price
@@ -122,7 +127,8 @@ def listing(request, listing):
                     "is_author": request.user == listing.author,
                     "is_closed": listing.closed,
                     "is_winner": is_winner,
-                    "bids": Bid.objects.filter(item = listing).count()
+                    "bids": Bid.objects.filter(item = listing).count(),
+                    "comment_under": comments[::-1]
                 })
         else:
             return render(request, "auctions/listing.html", {
@@ -132,12 +138,14 @@ def listing(request, listing):
                 "is_author": request.user == listing.author,
                 "is_closed": listing.closed,
                 "is_winner": is_winner,
-                "bids": Bid.objects.filter(item = listing).count()
+                "bids": Bid.objects.filter(item = listing).count(),
+                "comment_under": comments[::-1]
             })
-    except:
+    else:
         return render(request, "auctions/listing.html", {
             "listing": listing,
-            "is_closed": listing.closed
+            "is_closed": listing.closed,
+            "comment_under": comments[::-1]
         })
 
 def closed(request, listing):
@@ -173,7 +181,24 @@ def watchlist(request):
         "watchlist": watchlist.item.all()
     })
 
+@login_required
+def add_comment(request, listing):
+    listing = Listing.objects.get(pk = int(listing))
+    if (request.method == "POST"):
+        comment = Comment_under_post(author = request.user, comment = request.POST["comment_under_post"], item = listing)
+        comment.save()
+        return HttpResponseRedirect(reverse("listing", args = (listing.id, )))
+    else:
+        return HttpResponseRedirect(reverse("listing", args = (listing.id, )))
 
+def categories(request):
+    return render(request, "auctions/categories.html", {
+        "categories": Category.objects.all()
+    })
 
-
-
+def category(request, slug):
+    cat = Category.objects.get(slug = slug)
+    return render(request, "auctions/category.html", {
+        "items": Listing.objects.filter(category=cat),
+        "category": cat.name
+    })

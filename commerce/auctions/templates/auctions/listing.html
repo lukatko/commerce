@@ -37,9 +37,22 @@
         {% endif %}
         <p>Number of bids: {{ bids }}</p>
         <form method = "POST">
-            <input class="form-control" type="number" placeholder="Bid" pattern = "^\d*(\.\d{0,2})?$" name = "price">
+            <input type="number" placeholder="0.00" required name="price" min="0" value="0" step="0.01" pattern="^\d+(?:\.\d{1,2})?$" onblur="this.parentNode.parentNode.style.backgroundColor=/^\d+(?:\.\d{1,2})?$/.test(this.value)?'inherit':'red'">
             {% csrf_token %}
             <input type="submit" value = "Place bid">
         </form>
+        <h3>Write a comment: </h3>
+        <form action="{% url "add_comment" listing.id %}" method = "post">
+            <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name = "comment_under_post"></textarea>
+            {% csrf_token %}
+            <input type="submit" Value = "Add the comment">
+        </form>
     {% endif %}
+    <h2>All comments</h2>
+    {% for comment in comment_under %}
+        <h4>Author: {{ comment.author }}</h4>
+        <p>{{ comment.comment }}</p>
+        {% empty %}
+            <h5>No Comments</h5>
+    {% endfor %}
 {% endblock %}

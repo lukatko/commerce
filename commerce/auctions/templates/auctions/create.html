@@ -7,8 +7,14 @@
             <input class="form-control" type="text" placeholder="Broom" name = "name">
             <h4>Insert a link with an image url: </h4>
             <input class="form-control" type="text" placeholder="url", name = "image">
+            <h4>Category: </h4>
+            <select name="Category">
+                {% for category in Categories %}
+                    <option value="{{ category.id }}">{{category.name}}</option>
+                {% endfor %}
+            </select>
             <h4>Starting bidding price, must be up to 2 decimals: </h4>
-            <input class="form-control" type="number" placeholder="50" pattern = "^\d*(\.\d{0,2})?$" name = "price">
+            <input type="number" placeholder="0.00" required name="price" min="0" value="0" step="0.01" pattern="^\d+(?:\.\d{1,2})?$" onblur="this.parentNode.parentNode.style.backgroundColor=/^\d+(?:\.\d{1,2})?$/.test(this.value)?'inherit':'red'">
             <h4>Write a comment: </h4>
             <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name = "comment"></textarea>
             {% csrf_token %}

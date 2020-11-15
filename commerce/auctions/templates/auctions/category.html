@@ -1,0 +1,21 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Listings with category {{ category }}</h2>
+    {% for listing in items %}
+        <a href="{% url "listing" listing.id %}" id = "link_listings">
+            <div id = "listing">
+                <div id = "image">
+                    <img src="{{ listing.comment.image }}" alt="{{listing.post_name}}" id = "listing_img">
+                </div>
+                <div id = "description">
+                    <h3>{{ listing.post_name }}</h3>
+                    <h4>Price: {{ listing.price }}</h4>
+                    <p>{{ listing.comment.comment }}</p>
+                    <p>Created by: {{ listing.author }}</p>
+                </div>
+            </div>
+        </a>
+    {% endfor %}
+
+{% endblock %}
